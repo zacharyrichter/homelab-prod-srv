@@ -1,0 +1,82 @@
+services:
+  piped-frontend:
+    image: 1337kavin/piped-frontend:latest
+    restart: always
+    networks:
+      - piped
+    depends_on:
+      - piped
+    environment:
+      BACKEND_HOSTNAME: pipedapi.hostname.org
+      HTTP_MODE: https
+    container_name: piped-frontend
+  piped-proxy:
+    image: 1337kavin/piped-proxy:latest
+    restart: always
+    networks:
+      - piped
+    environment:
+      - UDS=1
+    volumes:
+      - piped-proxy:/app/socket
+    container_name: piped-proxy
+  piped:
+    image: 1337kavin/piped:latest
+    restart: always
+    networks:
+      - piped
+    volumes:
+      - /opt/appdata/piped/config/config.properties:/app/config.properties:ro
+    depends_on:
+      - postgres
+    container_name: piped-backend
+  bg-helper:
+    image: 1337kavin/bg-helper-server:latest
+    restart: always
+    networks:
+      - piped
+    container_name: piped-bg-helper
+  nginx:
+    image: nginx:mainline-alpine
+    restart: always
+    networks:
+      - piped
+      - warptunnel
+    ports:
+      - 8080:80
+    volumes:
+      - /opt/appdata/piped/config/nginx.conf:/etc/nginx/nginx.conf:ro
+      - /opt/appdata/piped/config/pipedapi.conf:/etc/nginx/conf.d/pipedapi.conf:ro
+      - /opt/appdata/piped/config/pipedproxy.conf:/etc/nginx/conf.d/pipedproxy.conf:ro
+      - /opt/appdata/piped/config/pipedfrontend.conf:/etc/nginx/conf.d/pipedfrontend.conf:ro
+      - /opt/appdata/piped/config/ytproxy.conf:/etc/nginx/snippets/ytproxy.conf:ro
+      - piped-proxy:/var/run/ytproxy
+    container_name: nginx
+    depends_on:
+      - piped
+      - piped-proxy
+      - piped-frontend
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.piped.entrypoints=https
+      - traefik.http.routers.piped.rule=Host(`piped.hostname.org`) ||
+        Host(`pipedapi.hostname.org`) || Host(`pipedproxy.hostname.org`)
+  postgres:
+    image: pgautoupgrade/pgautoupgrade:16-alpine
+    restart: always
+    networks:
+      - piped
+    volumes:
+      - /opt/appdata/piped/data/db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=piped
+      - POSTGRES_USER=piped
+      - POSTGRES_PASSWORD=changeme
+    container_name: postgres
+volumes:
+  piped-proxy: null
+networks:
+  piped:
+    external: true
+  warptunnel:
+    external: true
