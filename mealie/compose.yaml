@@ -1,0 +1,41 @@
+services:
+  mealie:
+    image: ghcr.io/mealie-recipes/mealie:nightly
+    container_name: mealie
+    restart: always
+    networks:
+      - warptunnel
+    ports:
+      - 9925:9000 #
+    deploy:
+      resources:
+        limits:
+          memory: 1000M #
+    volumes:
+      - /opt/appdata/mealie:/app/data/
+    environment:
+      # Set Backend ENV Variables Here
+      ALLOW_SIGNUP: false
+      PUID: 1000
+      PGID: 1000
+      TZ: America/Chicago
+      MAX_WORKERS: 1
+      WEB_CONCURRENCY: 1
+      BASE_URL: http://10.1.1.64:9925
+      TOKEN_TIME: 720
+      SMTP_HOST: smtp.email.com
+      SMTP_PORT: 587
+      SMTP_FROM_NAME: Mealie
+      SMTP_AUTH_STRATEGY: TLS
+      SMTP_FROM_EMAIL: your@email.com
+      SMTP_USER: your@email.com
+      SMTP_PASSWORD: changeme
+      # Database Settings
+      DB_ENGINE: sqlite
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.mealie.entryPoints=https
+      - traefik.http.routers.mealie.rule=Host(`mealie.hostname.org`)
+networks:
+  warptunnel:
+    external: true
