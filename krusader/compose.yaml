@@ -1,0 +1,19 @@
+services:
+  krusader:
+    image: binhex/arch-krusader:latest
+    container_name: krusader
+    privileged: true
+    environment:
+      - PUID=0
+      - PGID=0
+      - UMASK_SET=000
+      - TEMP_FOLDER=/config/krusader/tmp
+    volumes:
+      - /opt/appdata/Krusader:/config
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/komodo:/etc/komodo #replace the first half of this with where *your* files / extra drives are located
+      - /opt/appdata:/opt/appdata #replace the first half of this with where *your* files / extra drives are located
+    ports:
+      - 5900:5900
+      - 6080:6080
+    restart: always
