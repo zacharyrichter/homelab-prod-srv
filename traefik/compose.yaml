@@ -1,0 +1,40 @@
+services:
+  traefik:
+    container_name: traefik
+    image: traefik:latest
+    ports:
+      - 80:80
+      - 443:443
+      - 8083:8080 # Dashboard port
+    volumes:
+      - /opt/appdata/traefik/:/etc/traefik/
+    networks:
+      - warptunnel # rename this to your custom docker network
+    labels:
+      traefik.http.routers.api.rule: Host(`traefik.hostname.org`) # Define the subdomain for the traefik dashboard.
+      traefik.http.routers.api.entryPoints: https # Set the Traefik entry point.
+      traefik.http.routers.api.service: api@internal # Enable Traefik API.
+      traefik.enable: true # Enable Traefik reverse proxy for the Traefik dashboard.
+    environment:
+      DOCKER_HOST: dockersocket
+    restart: always
+    depends_on:
+      - dockersocket
+  dockersocket:
+    container_name: dockersocket
+    image: tecnativa/docker-socket-proxy
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - warptunnel
+    environment:
+      CONTAINERS: 1
+      POST: 0
+    privileged: true
+    restart: always
+secrets:
+  cf_api_token:
+    file: ./cf_api_token.txt
+networks:
+  warptunnel:
+    external: true
