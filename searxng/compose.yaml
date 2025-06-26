@@ -1,0 +1,59 @@
+services:
+  redis:
+    container_name: searxng-redis
+    image: docker.io/valkey/valkey:8-alpine
+    command: valkey-server --save 30 1 --loglevel warning
+    restart: always
+    networks:
+      - searx
+    volumes:
+      - valkey-data2:/data
+    cap_drop:
+      - ALL
+    cap_add:
+      - SETGID
+      - SETUID
+      - DAC_OVERRIDE
+    logging:
+      driver: json-file
+      options:
+        max-size: 1m
+        max-file: "1"
+  searxng:
+    container_name: searxng
+    image: docker.io/searxng/searxng:latest
+    restart: always
+    networks:
+      - warptunnel
+      - searx
+    ports:
+      - 8090:8080
+    volumes:
+      - /opt/appdata/searx:/etc/searxng:rw
+    environment:
+      - SEARXNG_BASE_URL=https://search.hostname.org
+      - UWSGI_WORKERS=${SEARXNG_UWSGI_WORKERS:-4}
+      - UWSGI_THREADS=${SEARXNG_UWSGI_THREADS:-4}
+    #cap_drop:
+    #  - ALL
+    cap_add:
+      - CHOWN
+      - SETGID
+      - SETUID
+    logging:
+      driver: json-file
+      options:
+        max-size: 1m
+        max-file: "1"
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.searxng.entryPoints=https
+      - traefik.http.routers.searxng.rule=Host(`search.hostname.org`)
+networks:
+  warptunnel:
+    external: true
+  searx:
+    external: true
+volumes:
+  caddy-config: null
+  valkey-data2: null
