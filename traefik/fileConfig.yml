@@ -1,0 +1,158 @@
+http:
+  ## EXTERNAL ROUTING - Only use if you want to proxy something manually ##
+  routers:
+    serviceName:
+      entryPoints:
+        - https
+      rule: 'Host(`tasks.hostname.org`)'
+      service: planka
+    kavita:
+      entryPoints:
+        - https
+      rule: 'Host(`manga.hostname.org`)'
+      service: kavita
+    paperless:
+      entryPoints:
+        - https
+      rule: 'Host(`docs.hostname.org`)'
+      service: paperless
+    audiobookshelf:
+      entryPoints:
+        - https
+      rule: 'Host(`books.hostname.org`)'
+      service: audiobookshelf
+    nextlcoud:
+      entryPoints:
+        - https
+      rule: 'Host(`nextcloud.hostname.org`)'
+      service: nextcloud
+    manyfold:
+      entryPoints:
+        - https
+      rule: 'Host(`3dfiles.hostname.org`)'
+      service: manyfold
+    gitea:
+      entryPoints:
+        - https
+      rule: 'Host(`git.hostname.org`)'
+      service: gitea
+    freeipa:
+      entryPoints:
+        - https
+      rule: 'Host(`ipa.hostname.org`)'
+      service: freeipa
+    traefik-real-ip:
+      rule: Path(`/whoami`)
+      service: service-whoami
+      entryPoints:
+        - http
+      middlewares:
+        - traefik-real-ip
+  ## SERVICES ##
+  services:
+    planka:
+      loadBalancer:
+        servers:
+          - url: http://10.1.1.64:1337
+    kavita:
+      loadBalancer:
+        servers:
+          - url: http://10.1.1.84:5000
+    paperless:
+      loadBalancer:
+        servers:
+          - url: http://10.1.1.84:8009
+    nextcloud:
+      loadBalancer:
+        servers:
+          - url: https://10.1.1.84:444
+    audiobookshelf:
+      loadBalancer:
+        servers:
+          - url: http://10.1.1.84:13378
+    manyfold:
+      loadBalancer:
+        servers:
+          - url: http://10.1.1.84:3214
+    gitea:
+      loadBalancer:
+        servers:
+          - url: http://10.1.1.84:3000
+    freeipa:
+      loadBalancer:
+        servers:
+          - url: https://10.1.1.10:443
+    service-whoami:
+        loadBalancer:
+          servers:
+            - url: http://127.0.0.1:5000
+  ## MIDDLEWARES ##
+  middlewares:
+    ipallowlist:
+      ipAllowList:
+        sourceRange:
+          - "0.0.0.0/32"
+          - "127.0.0.1/32"
+          - "172.19.0.1/16"
+          - "192.168.50.1/24"
+          - "192.168.1.1/24"
+          - "192.168.10.1/24"
+          - "10.50.50.1/24"
+        ipStrategy:
+          depth: 0
+    crowdsec-bouncer:
+      forwardauth:
+        address: http://crowdsec-traefik-bouncer:8080/api/v1/forwardAuth
+        trustForwardHeader: true
+    traefik-real-ip:
+        plugin:
+            traefik-real-ip:
+                excludednets:
+                    - 1.1.1.1/24
+    local-ipwhitelist:
+      ipWhiteList:
+        sourceRange:
+          - 127.0.0.1/32 # localhost
+          - 192.168.1.1/24 # LAN Subnet
+          - 192.168.50.1/24 # DMZ Subnet
+          - 172.19.0.1/16
+          - 10.50.50.1/24 # VPN Subnet
+          - 192.168.10.1/24 # User Subnet
+          - 0.0.0.0/32
+    # Security headers
+    securityHeaders:
+      headers:
+        customResponseHeaders:
+          X-Robots-Tag: "none,noarchive,nosnippet,notranslate,noimageindex"
+          server: ""
+          X-Forwarded-Proto: "https"
+        sslProxyHeaders:
+          X-Forwarded-Proto: https
+        referrerPolicy: "strict-origin-when-cross-origin"
+        hostsProxyHeaders:
+          - "X-Forwarded-Host"
+          - "X-Forwareded-Proto"
+        customRequestHeaders:
+          X-Forwarded-Proto: "https"
+        contentTypeNosniff: true
+        browserXssFilter: true
+        forceSTSHeader: true
+        stsIncludeSubdomains: true
+        stsSeconds: 63072000
+        stsPreload: true
+# Only use secure ciphers - https://ssl-config.mozilla.org/#server=traefik&version=2.6.0&config=intermediate&guideline=5.6
+tls:
+  options:
+    default:
+      minVersion: VersionTLS12
+      curvePreferences:
+        - CurveP256
+        - CurveP384
+        - CurveP521
+      cipherSuites:
+        - TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+        - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+        - TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+        - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        - TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305
+        - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305
