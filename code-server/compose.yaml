@@ -1,0 +1,16 @@
+services:
+  code-server:
+    image: lscr.io/linuxserver/code-server:latest
+    container_name: code-server
+    volumes:
+      - /opt/appdata/code-server:/config
+      - /opt/appdata/:/appdata/
+      - /etc/komodo/stacks/:/stacks/
+    ports:
+      - 8443:8443
+    networks:
+      - warptunnel
+    restart: always
+networks:
+  warptunnel:
+    external: true
