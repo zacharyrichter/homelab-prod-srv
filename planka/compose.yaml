@@ -1,0 +1,93 @@
+services:
+  planka:
+    image: ghcr.io/plankanban/planka:latest
+    restart: always
+    volumes:
+      - /opt/appdata/planka/user-avatars:/app/public/user-avatars
+      - /opt/appdata/planka/project-background-images:/app/public/project-background-images
+      - /opt/appdata/planka/attachments:/app/private/attachments
+    networks:
+      - warptunnel
+      - planka
+    ports:
+      - 1337:1337
+    environment:
+      - BASE_URL=https://tasks.hostname.org
+      - DATABASE_URL=postgresql://postgres@10.1.1.64:5433/planka
+      - SECRET_KEY=changeme
+      - TRUST_PROXY=0
+      - DEFAULT_ADMIN_PASSWORD=changeme
+      - DEFAULT_ADMIN_NAME=admin
+      - DEFAULT_ADMIN_USERNAME=admin
+      - DEFAULT_ADMIN_EMAIL=your@email.com
+      # - ALLOW_ALL_TO_CREATE_PROJECTS=true
+
+      # - OIDC_ISSUER=
+      # - OIDC_CLIENT_ID=
+      # - OIDC_CLIENT_SECRET=
+      # - OIDC_ID_TOKEN_SIGNED_RESPONSE_ALG=
+      # - OIDC_USERINFO_SIGNED_RESPONSE_ALG=
+      # - OIDC_SCOPES=openid email profile
+      # - OIDC_RESPONSE_MODE=fragment
+      # - OIDC_USE_DEFAULT_RESPONSE_MODE=true
+      # - OIDC_ADMIN_ROLES=admin
+      # - OIDC_EMAIL_ATTRIBUTE=email
+      # - OIDC_NAME_ATTRIBUTE=name
+      # - OIDC_USERNAME_ATTRIBUTE=preferred_username
+      # - OIDC_ROLES_ATTRIBUTE=groups
+      # - OIDC_IGNORE_USERNAME=true
+      # - OIDC_IGNORE_ROLES=true
+      # - OIDC_ENFORCED=true
+
+      # Email Notifications (https://nodemailer.com/smtp/)
+      # - SMTP_HOST=
+      # - SMTP_PORT=587
+      # - SMTP_NAME=
+      # - SMTP_SECURE=true
+      # - SMTP_USER=
+      # - SMTP_PASSWORD=
+      # - SMTP_FROM="Demo Demo" <demo@demo.demo>
+
+      # Optional fields: accessToken, events, excludedEvents
+      # - |
+      #   WEBHOOKS=[{
+      #     "url": "http://localhost:3001",
+      #     "accessToken": "notaccesstoken",
+      #     "events": ["cardCreate", "cardUpdate", "cardDelete"],
+      #     "excludedEvents": ["notificationCreate", "notificationUpdate"]
+      #   }]
+
+      # - SLACK_BOT_TOKEN=
+      # - SLACK_CHANNEL_ID=
+    depends_on:
+      postgres:
+        condition: service_healthy
+  #    labels:
+  #      - traefik.enable=true
+  #      - traefik.http.routers.planka.entryPoints=https
+  #      - traefik.http.services.planka.loadbalancer.server.scheme=https
+  #      - traefik.http.routers.planka.rule=Host(`tasks.borgcube.me`)
+  postgres:
+    image: postgres:14-alpine
+    restart: always
+    ports:
+      - 5433:5432
+    volumes:
+      - /opt/appdata/planka-db:/var/lib/postgresql/data
+    networks:
+      - planka
+    environment:
+      - POSTGRES_DB=planka
+      - POSTGRES_HOST_AUTH_METHOD=trust
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U postgres -d planka
+      interval: 10s
+      timeout: 5s
+      retries: 5
+networks:
+  warptunnel:
+    external: true
+  planka:
+    external: true
