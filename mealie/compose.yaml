@@ -14,24 +14,35 @@ services:
     volumes:
       - /opt/appdata/mealie:/app/data/
     environment:
-      # Set Backend ENV Variables Here
-      ALLOW_SIGNUP: false
-      PUID: 1000
-      PGID: 1000
-      TZ: America/Chicago
-      MAX_WORKERS: 1
-      WEB_CONCURRENCY: 1
-      BASE_URL: http://10.1.1.64:9925
-      TOKEN_TIME: 720
-      SMTP_HOST: smtp.email.com
-      SMTP_PORT: 587
-      SMTP_FROM_NAME: Mealie
-      SMTP_AUTH_STRATEGY: TLS
-      SMTP_FROM_EMAIL: your@email.com
-      SMTP_USER: your@email.com
-      SMTP_PASSWORD: changeme
-      # Database Settings
-      DB_ENGINE: sqlite
+      - ALLOW_SIGNUP=false
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - MAX_WORKERS=1
+      - WEB_CONCURRENCY=1
+      - BASE_URL=http=${BASE_URL}
+      - TOKEN_TIME=720
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=587
+      - SMTP_FROM_NAME=${SMTP_FROM}
+      - SMTP_AUTH_STRATEGY=TLS
+      - SMTP_FROM_EMAIL=${SMTP_FROM_EMAIL}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - DB_ENGINE=sqlite
+      - OIDC_AUTH_ENABLED=true
+      - OIDC_SIGNUP_ENABLED=false
+      - OIDC_CONFIGURATION_URL=${OIDC_CONFIGURATION_URL}
+      - OIDC_CLIENT_ID=${OIDC_CLIENT_ID}
+      - OIDC_CLIENT_SECRET=${OIDC_CLIENT_SECRET}
+      - OIDC_USER_GROUP=${OIDC_USER_GROUP}
+      - OIDC_ADMIN_GROUP=${OIDC_ADMIN_GROUP}
+      - OIDC_AUTO_REDIRECT=true
+      - OIDC_PROVIDER_NAME=${OIDC_PROVIDER_NAME}
+      - OIDC_REMEMBER_ME=true
+      - OIDC_USER_CLAIM=preferred_username
+      - OIDC_NAME_CLAIM=name
+      - OIDC_GROUPS_CLAIM=groups
     labels:
       - traefik.enable=true
       - traefik.http.routers.mealie.entryPoints=https
