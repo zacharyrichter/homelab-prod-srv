@@ -19,7 +19,7 @@ services:
     labels:
       - traefik.enable=true
       - traefik.http.routers.actual.entryPoints=https
-      - traefik.http.routers.actual.rule=Host(`budget.richterhome.org`)
+      - traefik.http.routers.actual.rule=Host(`budget.hostname.org`)
 networks:
   warptunnel:
     external: true
