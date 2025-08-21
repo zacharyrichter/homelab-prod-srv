@@ -12,7 +12,8 @@ services:
       # - seccomp=seccomp-redlib.json
     cap_drop:
       - ALL
-    env_file: "redlib.env"
+    env_file: 
+      - path: ./redlib.env
     networks:
       - warptunnel
     labels:
