@@ -16,7 +16,8 @@ services:
       traefik.http.routers.api.service: api@internal # Enable Traefik API.
       traefik.enable: true # Enable Traefik reverse proxy for the Traefik dashboard.
     environment:
-      DOCKER_HOST: dockersocket
+      - DOCKER_HOST=dockersocket
+      - CF_DNS_API_TOKEN=${CF_DNS_API_TOKEN}
     restart: always
     depends_on:
       - dockersocket
@@ -32,9 +33,6 @@ services:
       POST: 0
     privileged: true
     restart: always
-secrets:
-  cf_api_token:
-    file: ./cf_api_token.txt
 networks:
   warptunnel:
     external: true
