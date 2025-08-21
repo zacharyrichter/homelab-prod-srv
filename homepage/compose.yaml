@@ -5,9 +5,9 @@ services:
     networks:
       - warptunnel
     environment:
-      HOMEPAGE_ALLOWED_HOSTS: 10.1.1.64:3003,home.hostname.org
-      PUID: 1000
-      PGID: 1000
+      - HOMEPAGE_ALLOWED_HOSTS=${ALLOWED_HOSTS}
+      - PUID=${PUID}
+      - PGID=${PGID}
     ports:
       - 3003:3000
     volumes:
@@ -16,7 +16,7 @@ services:
     labels:
       - traefik.enable=true
       - traefik.http.routers.homepage.entryPoints=https
-      - traefik.http.routers.homepage.rule=Host(`home.hostname.org`)
+      - traefik.http.routers.homepage.rule=Host(`home.richterhome.org`)
     restart: always
 networks:
   warptunnel:
