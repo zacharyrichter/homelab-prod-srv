@@ -1,0 +1,14 @@
+services:
+  cloudflared:
+    image: cloudflare/cloudflared:latest #update the verion where necessary
+    container_name: cloudflared
+    restart: always
+    networks:
+      - warptunnel
+    command: tunnel --config /home/nonroot/.cloudflared/config.yml run
+      ${UUID} #Replace UUID with your actual UUID
+    volumes:
+      - /opt/appdata/cloudflared/:/home/nonroot/.cloudflared/
+networks:
+  warptunnel:
+    external: true
