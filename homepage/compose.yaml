@@ -16,7 +16,7 @@ services:
     labels:
       - traefik.enable=true
       - traefik.http.routers.homepage.entryPoints=https
-      - traefik.http.routers.homepage.rule=Host(`home.richterhome.org`)
+      - traefik.http.routers.homepage.rule=Host(`home.hostname.org`)
     restart: always
 networks:
   warptunnel:
