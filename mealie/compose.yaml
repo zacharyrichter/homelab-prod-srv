@@ -20,7 +20,7 @@ services:
       - TZ=${TZ}
       - MAX_WORKERS=1
       - WEB_CONCURRENCY=1
-      - BASE_URL=http=${BASE_URL}
+      - BASE_URL=${BASE_URL}
       - TOKEN_TIME=720
       - SMTP_HOST=${SMTP_HOST}
       - SMTP_PORT=587
