@@ -58,7 +58,7 @@ entryPoints:
         - auth@file
         - securityHeaders@file
         - traefik-real-ip@file
-        - ipallowlist@file
+        - ipAllowlist@file
 providers:
   providersThrottleDuration: 2s
 
@@ -110,4 +110,5 @@ experimental:
           version: "v0.1.1"
       traefik-real-ip:
         moduleName: "github.com/soulbalz/traefik-real-ip"
+
         version: "v1.0.3"
