@@ -1,0 +1,30 @@
+services:
+  ntfy:
+    image: binwiederhier/ntfy
+    container_name: ntfy
+    command:
+      - serve
+    networks:
+      - warptunnel
+    environment:
+      - TZ=America/Chicago    # optional: set desired timezone
+    user: 1000:1000 # optional: replace with your own user/group or uid/gid
+    volumes:
+      - /opt/appdata/ntfy:/var/cache/ntfy
+      - /opt/appdata/ntfy:/etc/ntfy
+    ports:
+      - 8080:80
+    healthcheck: # optional: remember to adapt the host:port to your environment
+        test: ["CMD-SHELL", "wget -q --tries=1 http://localhost:8080/v1/health -O - | grep -Eo '\"healthy\"\\s*:\\s*true' || exit 1"]
+        interval: 60s
+        timeout: 10s
+        retries: 3
+        start_period: 40s
+    restart: unless-stopped
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.ntfy.entryPoints=https
+      - traefik.http.routers.ntfy.rule=Host(`ntfy.domain.org`)
+networks:
+  warptunnel:
+    external: true
