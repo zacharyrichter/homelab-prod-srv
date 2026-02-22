@@ -7,7 +7,7 @@ entryPoints:
     address: :80
     forwardedHeaders:
       trustedIPs: &trustedIps
-        - "172.19.0.0/16"  # local docker network
+        - "172.19.0.0/16"  # warptunnel - cloudflared container
     http:
       redirections:
         entryPoint:
