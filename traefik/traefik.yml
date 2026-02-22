@@ -2,63 +2,33 @@ global:
   checkNewVersion: true
   sendAnonymousUsage: false
 
-serversTransport:
-  insecureSkipVerify: true
-
 entryPoints:
-  # Not used in apps, but redirect everything from HTTP to HTTPS
   http:
     address: :80
     forwardedHeaders:
       trustedIPs: &trustedIps
-        # Start of Clouflare public IP list for HTTP requests, remove this if you don't use it
-        - 173.245.48.0/20
-        - 103.21.244.0/22
-        - 103.22.200.0/22
-        - 103.31.4.0/22
-        - 141.101.64.0/18
-        - 108.162.192.0/18
-        - 190.93.240.0/20
-        - 188.114.96.0/20
-        - 197.234.240.0/22
-        - 198.41.128.0/17
-        - 162.158.0.0/15
-        - 104.16.0.0/12
-        - 172.64.0.0/13
-        - 131.0.72.0/22
-        - 2400:cb00::/32
-        - 2606:4700::/32
-        - 2803:f800::/32
-        - 2405:b500::/32
-        - 2405:8100::/32
-        - 2a06:98c0::/29
-        - 2c0f:f248::/32
-        # End of Cloudlare public IP list
+        - "172.19.0.0/16"  # local docker network
     http:
       redirections:
         entryPoint:
           to: https
           scheme: https
-
-  # HTTPS endpoint, with domain wildcard
   https:
     address: :443
     forwardedHeaders:
-      # Reuse list of Cloudflare Trusted IP's above for HTTPS requests
       trustedIPs: *trustedIps
     http:
       tls:
-        # Generate a wildcard domain certificate
         certResolver: letsencrypt
         domains:
-          - main: hostname.org
+          - main: yourdomain.com
             sans:
-              - '*.hostname.org'
+              - '*.yourdomain.com'
       middlewares:
-        - auth@file
         - securityHeaders@file
-        - traefik-real-ip@file
-        - ipAllowlist@file
+        - local-ipwhitelist@file
+        - compress@file
+        - crowdsec-bouncer@file
 providers:
   providersThrottleDuration: 2s
 
@@ -67,32 +37,23 @@ providers:
     filename: /etc/traefik/fileConfig.yml
     watch: true
 
-  # Docker provider for connecting all apps that are inside of the docker network
-  docker:
-    watch: true
-    network: warptunnel    # Add Your Docker Network Name Here
-    # Default host rule to containername.domain.example
-    defaultRule: "Host(`{{ lower (trimPrefix `/` .Name )}}.hostname.org`)"    # Replace with your domain
-    # swarmModeRefreshSeconds: 15s
-    exposedByDefault: false
-    endpoint: "http://dockersocket:2375" # Uncomment if you are using docker socket proxy
-
 # Enable traefik ui
 api:
-  dashboard: true
-  insecure: false
+  dashboard: false
 
 # Log level INFO|DEBUG|ERROR
 log:
   filePath: "/etc/traefik/logs/traefik.log"
-  level: DEBUG
+  level: INFO
+  maxSize: 10
+  maxBackups: 3
+  maxAge: 7
 
 # Use letsencrypt to generate ssl serficiates
 certificatesResolvers:
   letsencrypt:
     acme:
       email: your@email.com
-     # caServer: https://acme-v02.api.letsencrypt.org/directory
       storage: /etc/traefik/acme.json
       dnsChallenge:
         provider: cloudflare
@@ -100,15 +61,12 @@ certificatesResolvers:
         resolvers:
           - "1.1.1.1:53"
           - "1.0.0.1:53"
-
-pilot:
-    token: "your-token-here"
-experimental:
-    plugins:
-      torblock:
-          moduleName: "github.com/jpxd/torblock"
-          version: "v0.1.1"
-      traefik-real-ip:
-        moduleName: "github.com/soulbalz/traefik-real-ip"
-
-        version: "v1.0.3"
+accessLog:
+  filePath: "/etc/traefik/logs/access.log"
+  bufferingSize: 100
+  fields:
+    headers:
+      defaultMode: drop
+  filters:
+    statusCodes:
+      - "200-599"
